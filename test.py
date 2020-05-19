@@ -83,7 +83,19 @@ def main(_argv):
         print(f"[*] save result at {save_img_path}")
 
     else:
+        
         cam = cv2.VideoCapture(0)
+
+        ### Saving Video to file
+        frame_width = int(cam.get(3))
+        frame_height = int(cam.get(4))
+
+        # Define the codec and create VideoWriter object.The output is stored in 'outpy.avi' file.
+        # import os
+        if not os.path.exists('./output'):
+            print('Creating folder: output/ for saving video.')
+            os.makedirs('./output')
+        out = cv2.VideoWriter('./output/output.avi', cv2.VideoWriter_fourcc('M','J','P','G'), 10, (frame_width,frame_height))
 
         start_time = time.time()
         while True:
@@ -121,6 +133,7 @@ def main(_argv):
 
             # show frame
             cv2.imshow('frame', frame)
+            out.write(frame)
             if cv2.waitKey(1) == ord('q'):
                 exit()
 
