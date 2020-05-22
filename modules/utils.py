@@ -151,6 +151,9 @@ def draw_bbox_landm(img, ann, img_height, img_width):
     # bbox
     x1, y1, x2, y2 = int(ann[0] * img_width), int(ann[1] * img_height), \
                      int(ann[2] * img_width), int(ann[3] * img_height)
+    
+    croppedFace = img[y1:y2,x1:x2].copy()
+    
     cv2.rectangle(img, (x1, y1), (x2, y2), (0, 255, 0), 2)
 
     # confidence
@@ -170,7 +173,8 @@ def draw_bbox_landm(img, ann, img_height, img_width):
                          int(ann[11] * img_height)), 1, (0, 100, 255), 2)
         cv2.circle(img, (int(ann[12] * img_width),
                          int(ann[13] * img_height)), 1, (255, 0, 100), 2)
-
+    
+    return croppedFace
 
 def draw_anchor(img, prior, img_height, img_width):
     """draw anchors"""

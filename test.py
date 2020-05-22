@@ -19,7 +19,10 @@ flags.DEFINE_boolean('webcam', False, 'get image source from webcam or not')
 flags.DEFINE_float('iou_th', 0.4, 'iou threshold for nms')
 flags.DEFINE_float('score_th', 0.5, 'score threshold for nms')
 flags.DEFINE_float('down_scale_factor', 1.0, 'down-scale factor for inputs')
-
+flags.DEFINE_string('vid_path', '', 'path to input video')
+flags.DEFINE_boolean('preview', True, 'to show preview')
+flags.DEFINE_integer('dfps', 15, 'desired fps')
+flags.DEFINE_string('dst_path', 15, 'destination path')
 
 def main(_argv):
     # init
@@ -84,7 +87,8 @@ def main(_argv):
 
     else:
         
-        cam = cv2.VideoCapture(0)
+        cam = cv2.VideoCapture(FLAGS.vid_path)
+        fps = int(cam.get(cv2.CAP_PROP_FPS))
 
         ### Saving Video to file
         frame_width = int(cam.get(3))
@@ -98,10 +102,13 @@ def main(_argv):
         out = cv2.VideoWriter('./output/output.avi', cv2.VideoWriter_fourcc('M','J','P','G'), 10, (frame_width,frame_height))
 
         start_time = time.time()
+        counter = 0
+        frameCount = 0
         while True:
             _, frame = cam.read()
             if frame is None:
                 print("no cam input")
+            frameCount = frameCount + 1
 
             frame_height, frame_width, _ = frame.shape
             img = np.float32(frame.copy())
@@ -122,8 +129,14 @@ def main(_argv):
 
             # draw results
             for prior_index in range(len(outputs)):
-                draw_bbox_landm(frame, outputs[prior_index], frame_height,
+                croppedFace = draw_bbox_landm(frame, outputs[prior_index], frame_height,
                                 frame_width)
+                if frameCount >= fps * FLAGS.dfps:
+                    fileName = "%d.png" % counter
+                    cv2.imwrite(FLAGS.dst_path + fileName, croppedFace)
+                    print('Saved:', fileName)
+                    counter = counter + 1
+                    frameCount = 0
 
             # calculate fps
             fps_str = "FPS: %.2f" % (1 / (time.time() - start_time))
@@ -132,7 +145,8 @@ def main(_argv):
                         cv2.FONT_HERSHEY_DUPLEX, 0.75, (0, 255, 0), 2)
 
             # show frame
-            cv2.imshow('frame', frame)
+            if FLAGS.preview:
+                cv2.imshow('frame', frame)
             out.write(frame)
             if cv2.waitKey(1) == ord('q'):
                 exit()
